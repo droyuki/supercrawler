@@ -1,0 +1,205 @@
+<html meta http-equiv="Content-Type" content="text/html" charset="UTF-8"/>
+<head>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+  <link rel="stylesheet" href="style.css"/>
+  <title>jQuery Example</title>
+  <script type="text/javascript" charset="utf-8">
+    var detail, likes, owner, result = [];
+    $(document).ready(function () {
+      // Execute some code here
+      $.ajaxSetup({cache: true});
+      $.getScript('//connect.facebook.net/zh_TW/sdk.js', function () {
+        FB.init({
+          appId: '781600181974992',
+          status: true,//check login status
+          cookie: true,//enable cookies to allow the server to access the session
+          xfbml: true, //parse XFBML
+          oauth: true,
+          version: 'v2.6'
+        });
+        $('#loginbutton,#feedbutton').removeAttr('disabled');
+        FB.getLoginStatus(function (response) {
+          if (response.status === 'connected') {
+            localStorage.setItem('accessToken', response.authResponse.accessToken);
+            var uid = response.authResponse.userID;
+            var accessToken = response.authResponse.accessToken;
+          }
+          else if (response.status === 'not_authorized') {
+          }
+          else {
+          }
+        });
+      });
+    });
+    //368692469970071_486071561565494
+    //1477960972449002_1553343964910702
+    var myFacebookLogin = function (address) {
+      // if login was successful, execute the following code
+      FB.login(function (response) {
+        if (response.authResponse) {
+          var addr, id, stid;
+          if (address.indexOf("permalink.php?") > -1) {
+            id = address.split("&id=")[1];
+            stid = address.split("&id=")[0].split("fbid=")[1];
+          } else {
+            var name = address.split("www.facebook.com/")[1].split("/posts/")[0];
+            FB.api(name + "?fields=id", function (detail) {
+              console.log(JSON.stringify(detail));
+            });
+            stid = address.split("www.facebook.com/")[1].split("/posts/")[1];
+          }
+          console.log("stid:" + stid);
+          addr = id + "_" + stid;
+          console.log("id:" + id);
+
+
+          var setOwner = function (n) {
+            owner = n;
+            console.log(owner);
+          }
+          var setDetail = function (obj) {
+            detail = obj;
+            console.log(detail);
+          }
+          var setLikes = function (obj) {
+            likes = obj;
+            console.log(likes);
+          }
+
+
+          FB.api(id, function (details) {
+            setOwner(details.name);
+            FB.api(addr + "/likes", function (details) {
+              // output the response
+              setLikes(details);
+              FB.api(addr + "/comments?fields=parent,message,from,likes,created_time&filter=stream", function (detail) {
+                setDetail(detail);
+                parseLike();
+                parseDetail();
+                JSONToCSVConvertor(result, "", true);
+              });
+            });
+          });
+        }
+      }, {
+        scope: "user_likes"
+      });
+      function parseLike() {
+        console.log(likes);
+        console.log(typeof(likes));
+        for (var i = 0; i < likes.data.length; i++) {
+          result.push({
+            "行為者": likes.data[i].name,
+            "對象": owner,
+            "關係": "like",
+            "時間": "Null"
+          });
+        }
+      }
+
+      function parseDetail() {
+        for (var i = 0; i < detail.data.length; i++) {
+          //if no parent
+          if (!detail.data[i].hasOwnProperty("parent")) {
+            var user = detail.data[i].from.name;
+            var to = owner;
+            var time = detail.data[i].created_time;
+            result.push({
+              "行為者": user,
+              "對象": to,
+              "關係": "comment",
+              "時間": time
+            })
+            if (detail.data[i].hasOwnProperty("likes")) {
+              for (var j = 0; j < detail.data[i].likes.data.length; j++) {
+                var user = detail.data[i].likes.data[j].name;
+                var to = detail.data[i].from.name;
+                var time = "Null";
+                result.push({
+                  "行為者": user,
+                  "對象": to,
+                  "關係": "like",
+                  "時間": time
+                });
+              }
+            }
+          } else {
+            //has parent
+            var user = detail.data[i].from.name;
+            var to = detail.data[i].parent.from.name;
+            var time = detail.data[i].created_time;
+            result.push({
+              "行為者": user,
+              "對象": to,
+              "關係": "comment",
+              "時間": time
+            })
+            if (detail.data[i].hasOwnProperty("likes")) {
+              for (var j = 0; j < detail.data[i].likes.data.length; j++) {
+                var user = detail.data[i].likes.data[j].name;
+                var to = detail.data[i].from.name;
+                var time = "Null";
+                result.push({
+                  "行為者": user,
+                  "對象": to,
+                  "關係": "like",
+                  "時間": time
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+
+
+    var process = function () {
+      var addr = document.getElementById("address").value;
+      myFacebookLogin(addr);
+      console.log(addr);
+    }
+
+
+    var JSONToCSVConvertor = function (JSONData, ReportTitle, ShowLabel) {
+      var arrData = typeof JSONData != 'object' ? JSON.parse(JSONData) : JSONData;
+      var CSV = '';
+      CSV += ReportTitle + '\r\n\n';
+      if (ShowLabel) {
+        var row = "";
+        for (var index in arrData[0]) {
+          row += index + ',';
+        }
+        row = row.slice(0, -1);
+        CSV += row + '\r\n';
+      }
+      for (var i = 0; i < arrData.length; i++) {
+        var row = "";
+        for (var index in arrData[i]) {
+          row += '"' + arrData[i][index] + '",';
+        }
+        row.slice(0, row.length - 1);
+        CSV += row + '\r\n';
+      }
+      if (CSV == '') {
+        alert("Invalid data");
+        return;
+      }
+      var fileName = "MyReport_";
+      fileName += ReportTitle.replace(/ /g, "_");
+      var uri;
+      var code = encodeURI(CSV);
+      uri = "data:application/csv;charset=utf-8,%EF%BB%BF" + code;
+      var link = document.createElement("a");
+      link.href = uri;
+      link.style = "visibility:hidden";
+      link.download = fileName + ".csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</head>
+<body>
+<input type="text" id="address" value="'id'_'story_fbid'"/>
+<button onclick="process()">Download</button>
+</body>

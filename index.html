@@ -1,10 +1,23 @@
 <html meta http-equiv="Content-Type" content="text/html" charset="UTF-8"/>
 <head>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+        integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+  <!-- Optional theme -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css"
+        integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+          integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
+          crossorigin="anonymous"></script>
+
   <link rel="stylesheet" href="style.css"/>
   <title>jQuery Example</title>
   <script type="text/javascript" charset="utf-8">
-    var detail, likes, owner, result = [];
+    var detail, likes, owner, uid, result = [];
     $(document).ready(function () {
       // Execute some code here
       $.ajaxSetup({cache: true});
@@ -37,49 +50,66 @@
       // if login was successful, execute the following code
       FB.login(function (response) {
         if (response.authResponse) {
-          var addr, id, stid;
-          if (address.indexOf("permalink.php?") > -1) {
-            id = address.split("&id=")[1];
-            stid = address.split("&id=")[0].split("fbid=")[1];
-          } else {
-            var name = address.split("www.facebook.com/")[1].split("/posts/")[0];
-            FB.api(name + "?fields=id", function (detail) {
-              console.log(JSON.stringify(detail));
-            });
-            stid = address.split("www.facebook.com/")[1].split("/posts/")[1];
+//          var addr, id, stid;
+          var setId = function (id) {
+            uid = id;
+            console.log("set id:" + uid);
           }
-          console.log("stid:" + stid);
-          addr = id + "_" + stid;
-          console.log("id:" + id);
-
-
           var setOwner = function (n) {
             owner = n;
-            console.log(owner);
+            console.log("owner: " + owner);
           }
           var setDetail = function (obj) {
+            console.log("set Detail.");
             detail = obj;
             console.log(detail);
           }
           var setLikes = function (obj) {
+            console.log("set likes");
             likes = obj;
             console.log(likes);
           }
 
-
-          FB.api(id, function (details) {
-            setOwner(details.name);
-            FB.api(addr + "/likes", function (details) {
-              // output the response
-              setLikes(details);
-              FB.api(addr + "/comments?fields=parent,message,from,likes,created_time&filter=stream", function (detail) {
-                setDetail(detail);
-                parseLike();
-                parseDetail();
-                JSONToCSVConvertor(result, "", true);
+          if (address.indexOf("permalink.php?") > -1) {
+            var id = address.split("&id=")[1];
+            var stid = address.split("&id=")[0].split("fbid=")[1];
+            var addr = id + "_" + stid;
+            console.log(addr);
+            FB.api(id, function (details) {
+              setOwner(details.name);
+              FB.api(addr + "/likes", function (details) {
+                // output the response
+                setLikes(details);
+                FB.api(addr + "/comments?fields=parent,message,from,likes,created_time&filter=stream", function (detail) {
+                  setDetail(detail);
+                  parseLike();
+                  parseDetail();
+                  JSONToCSVConvertor(result, "", true);
+                });
               });
             });
-          });
+
+          } else {
+            var name = address.split("www.facebook.com/")[1].split("/posts/")[0];
+            FB.api(name + "?fields=id", function (detail) {
+//              setId(JSON.stringify(detail));
+              var id = detail.id;
+              var addr = id + "_" + address.split("www.facebook.com/")[1].split("/posts/")[1];
+              FB.api(id, function (details) {
+                setOwner(details.name);
+                FB.api(addr + "/likes", function (details) {
+                  // output the response
+                  setLikes(details);
+                  FB.api(addr + "/comments?fields=parent,message,from,likes,created_time&filter=stream", function (detail) {
+                    setDetail(detail);
+                    parseLike();
+                    parseDetail();
+                    JSONToCSVConvertor(result, "", true);
+                  });
+                });
+              });
+            });
+          }
         }
       }, {
         scope: "user_likes"
@@ -155,6 +185,20 @@
 
     var process = function () {
       var addr = document.getElementById("address").value;
+//      var addr, id, stid;
+//      if (address.indexOf("permalink.php?") > -1) {
+//        id = address.split("&id=")[1];
+//        stid = address.split("&id=")[0].split("fbid=")[1];
+//      } else {
+//        var name = address.split("www.facebook.com/")[1].split("/posts/")[0];
+//        FB.api(name + "?fields=id", function (detail) {
+//          console.log(JSON.stringify(detail));
+//        });
+//        stid = address.split("www.facebook.com/")[1].split("/posts/")[1];
+//      }
+//      console.log("stid:" + stid);
+//      addr = id + "_" + stid;
+//      console.log("id:" + id);
       myFacebookLogin(addr);
       console.log(addr);
     }
@@ -200,6 +244,19 @@
   </script>
 </head>
 <body>
-<input type="text" id="address" value="'id'_'story_fbid'"/>
-<button onclick="process()">Download</button>
+
+<div class="container">
+  <div class="page-header">
+    <h1>Super crawler <small><span class="label label-primary">Beta</span></small>  </h1>
+  </div>
+  <div class="col-lg-6">
+    <div class="input-group">
+      <input type="text" class="form-control" id="address" placeholder="Search for...">
+      <span class="input-group-btn">
+        <button class="btn btn-default" onclick="process()" type="button">Go!</button>
+      </span>
+    </div><!-- /input-group -->
+  </div><!-- /.col-lg-6 -->
+</div>
+</div>
 </body>

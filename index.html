@@ -286,7 +286,7 @@
     }
 
     function setTime() {
-      timerr = timerr + 5;
+      timerr = timerr + 50;
       if (timerr < "80") // 避免後端程式尚未回傳，進度條已經跑到終點
       {
         $("#bar").css("width", timerr + "%");

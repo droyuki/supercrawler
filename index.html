@@ -278,6 +278,7 @@
       }
       result.sort(compare);
       JSONToCSVConvertor(result, "Report", true);
+      window.location.reload();
     });
 
     function makeCounter(limit, callback) {
@@ -333,7 +334,6 @@
       link.click();
       $("#bar").css("width", "100%");
       document.body.removeChild(link);
-      window.location.reload();
     }
   </script>
 </head>

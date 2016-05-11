@@ -15,7 +15,7 @@
           crossorigin="anonymous"></script>
 
   <link rel="stylesheet" href="style.css"/>
-  <title>Facebook Crawler</title>
+  <title>Super Crawler</title>
   <script type="text/javascript" charset="utf-8">
     var detail, detail_status = false, likes = [], likes_status = false, owner, uid, items = [], timerr = 1, result = [];
     $(document).ready(function () {
@@ -217,13 +217,6 @@
     var process = function () {
       var addr = document.getElementById("address").value;
       var id = setInterval(setTime, 500); // 啟動計時器
-//      $.post("/Home/Hello", function (data) {
-//        if(data)
-//        {
-//          $("#barr").css("width", "100%");
-//          clearInterval(id); // 終止計時器
-//        }
-//      });
       myFacebookLogin(addr);
       console.log(addr);
 
@@ -232,6 +225,7 @@
       // all done!
       console.log("Comlete!");
       console.log("Res count:" + result.length);
+      $("#bar").css("width", "100%");
       JSONToCSVConvertor(result, "Report", true);
     });
 

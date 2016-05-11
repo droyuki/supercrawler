@@ -230,7 +230,6 @@
       // all done!
       console.log("Comlete!");
       console.log("Res count:" + result.length);
-      $("#bar").css("width", "100%");
       JSONToCSVConvertor(result, "Report", true);
     });
 
@@ -285,6 +284,7 @@
       link.download = fileName + ".csv";
       document.body.appendChild(link);
       link.click();
+      $("#bar").css("width", "100%");
       document.body.removeChild(link);
     }
   </script>

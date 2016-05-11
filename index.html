@@ -278,7 +278,7 @@
       }
       result.sort(compare);
       JSONToCSVConvertor(result, "Report", true);
-      window.location.reload();
+
     });
 
     function makeCounter(limit, callback) {
@@ -347,7 +347,7 @@
   </div>
   <div class="col-lg-6">
     <div class="input-group">
-      <input type="text" class="form-control" id="address" placeholder="Search for...">
+      <input type="text" class="form-control" id="address" placeholder="請去除尾端'/'">
       <span class="input-group-btn">
         <button class="btn btn-default" onclick="process()" type="button">Go!</button>
       </span>
@@ -364,7 +364,6 @@
     </div>
   </div>
   <p> 網址範例：</p>
-  <p> 請去除尾端'/'</p>
   <p>https://www.facebook.com/permalink.php?story_fbid=486071561565494&id=368692469970071</p>
   <p>https://www.facebook.com/slimclassroom.tw/posts/1000137253415788</p>
 </div>

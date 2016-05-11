@@ -16,7 +16,7 @@
 
   <title>Super Crawler</title>
   <script type="text/javascript" charset="utf-8">
-    var detail, detail_status = false, likes = [], likes_status = false, owner, uid, items = [], timerr = 1, result = [];
+    var detail, detail_status = false, shared_status = false, likes = [], likes_status = false, owner, uid, items = [], timerr = 1, result = [];
     $(document).ready(function () {
       // Execute some code here
       $.ajaxSetup({cache: true});
@@ -55,22 +55,27 @@
           }
           /*判斷網址類型*/
           if (address.indexOf("permalink.php?") > -1) {
+            setInterval(setTime, 500); // 啟動計時器
             var id = address.split("&id=")[1];
             var stid = address.split("&id=")[0].split("fbid=")[1];
             var addr = id + "_" + stid;
             console.log("Query address: " + addr);
             getLikes(addr + "/likes?limit=1000", id);
+            getShares(addr + "/sharedposts?limit=1000", id);
             getDetails(addr + "/comments?fields=parent,message,from,likes,message_tags,created_time&filter=stream", id)
-          } else if(address.indexOf("/posts/") > -1) {
+          } else if (address.indexOf("/posts/") > -1) {
+            setInterval(setTime, 500); // 啟動計時器
             var name = address.split("www.facebook.com/")[1].split("/posts/")[0];
             FB.api(name + "?fields=id", function (detail) {
               var id = detail.id;
               var addr = id + "_" + address.split("www.facebook.com/")[1].split("/posts/")[1];
               console.log("Query address: " + addr);
               getLikes(addr + "/likes?limit=1000", id);
+              getShares(addr + "/sharedposts?limit=1000", id);
               getDetails(addr + "/comments?fields=parent,message,from,likes,message_tags,created_time&filter=stream", id)
             });
-          } else if(address.indexOf("/videos/") > -1){
+          } else if (address.indexOf("/videos/") > -1) {
+            setInterval(setTime, 500); // 啟動計時器
             console.log("Type: video");
             var name = address.split("www.facebook.com/")[1].split("/videos/")[0];
             FB.api(name + "?fields=id", function (detail) {
@@ -78,8 +83,25 @@
               var addr = id + "_" + address.split("www.facebook.com/")[1].split("/videos/")[1];
               console.log("Query address: " + addr);
               getLikes(addr + "/likes?limit=1000", id);
+              getShares(addr + "/sharedposts?limit=1000", id);
               getDetails(addr + "/comments?fields=parent,message,from,likes,message_tags,created_time&filter=stream", id)
             });
+          } else if (address.indexOf("/photos/") > -1){
+            setInterval(setTime, 500); // 啟動計時器
+            console.log("Type: photo");
+            var name = address.split("www.facebook.com/")[1].split("/photos/")[0];
+            FB.api(name + "?fields=id", function (detail) {
+              var id = detail.id;
+              var addr = id + "_" + address.split("/photos/")[1].split("/")[1];
+              console.log("Query address: " + addr);
+              getLikes(addr + "/likes?limit=1000", id);
+              getShares(addr + "/sharedposts?limit=1000", id);
+              getDetails(addr + "/comments?fields=parent,message,from,likes,message_tags,created_time&filter=stream", id)
+            });
+          } else {
+            $("#bar").css("width", "0%");
+            alert("還看不懂這種網址，請聯絡工程師。");
+            return;
           }
         }
       }, {
@@ -90,7 +112,35 @@
           "行為者": likes.id,
           "對象": owner,
           "關係": "like",
-          "時間": "null"
+          "time": "null"
+        });
+      }
+
+      function parseShare(share, owner) {
+        result.push({
+          "行為者": share.id.split("_")[1],
+          "對象": owner,
+          "關係": "share",
+          "time": "null"
+        });
+      }
+
+      function getShares(next, id) {
+        FB.api(next, function (response) {
+          console.log("share:"+response.data.length);
+          for (var i = 0; i < response.data.length; i++) {
+            parseShare(response.data[i], id);
+            //likes.push(response.data[i]);
+          }
+          if (response.paging && response.paging.next) {
+            //call function recursively until there is no "next"
+            getShares(response.paging.next, id);
+          } else {
+            console.log("Get shared complete");
+            shared_status = true;
+            console.log(result);
+            done();
+          }
         });
       }
 
@@ -98,17 +148,12 @@
         FB.api(next, function (response) {
           for (var i = 0; i < response.data.length; i++) {
             parseLike(response.data[i], id);
-            //likes.push(response.data[i]);
           }
           if (response.paging && response.paging.next) {
             //call function recursively until there is no "next"
             getLikes(response.paging.next, id);
           } else {
-            //this is when it´s done
-//            console.log("RESULT:" + result.length);
             likes_status = true;
-//            console.log(likes_status);
-//            console.log(result);
             done();
           }
         });
@@ -117,19 +162,13 @@
       function getDetails(next, id) {
         FB.api(next, function (response) {
           for (var i = 0; i < response.data.length; i++) {
-            //add all posts to the items array
-//            console.log("next detail");
-//            console.log(response.data[i]);
             parseDetail(response.data[i], id);
           }
           if (response.paging && response.paging.next) {
             //call function recursively until there is no "next"
             getDetails(response.paging.next, id);
           } else {
-            //this is when it´s done
-//            console.log("Detaul Result:" + result.length);
             detail_status = true;
-//            console.log(result);
             done();
           }
         });
@@ -145,7 +184,7 @@
             "行為者": user,
             "對象": to,
             "關係": "comment",
-            "時間": time
+            "time": time
           });
           if (detail.hasOwnProperty("likes")) {
             for (var j = 0; j < detail.likes.data.length; j++) {
@@ -156,7 +195,7 @@
                 "行為者": user,
                 "對象": to,
                 "關係": "like",
-                "時間": time
+                "time": time
               });
             }
           }
@@ -170,7 +209,7 @@
                 "行為者": user,
                 "對象": to,
                 "關係": "tag",
-                "時間": time
+                "time": time
               });
             }
           }
@@ -183,7 +222,7 @@
             "行為者": user,
             "對象": to,
             "關係": "comment",
-            "時間": time
+            "time": time
           })
           if (detail.hasOwnProperty("likes")) {
             for (var j = 0; j < detail.likes.data.length; j++) {
@@ -194,7 +233,7 @@
                 "行為者": user,
                 "對象": to,
                 "關係": "like",
-                "時間": time
+                "time": time
               });
             }
           }
@@ -208,7 +247,7 @@
                 "行為者": user,
                 "對象": to,
                 "關係": "tag",
-                "時間": time
+                "time": time
               });
             }
           }
@@ -221,15 +260,23 @@
     var process = function () {
       $("#bar").css("width", "0%");
       var addr = document.getElementById("address").value;
-      var id = setInterval(setTime, 500); // 啟動計時器
       myFacebookLogin(addr);
       console.log(addr);
 
     }
-    var done = makeCounter(2, function () {
+    var done = makeCounter(3, function () {
       // all done!
       console.log("Comlete!");
       console.log("Res count:" + result.length);
+      var compare = function(a, b){
+        if (a.time < b.time)
+          return -1;
+        else if (a.time > b.time)
+          return 1;
+        else
+          return 0;
+      }
+      result.sort(compare);
       JSONToCSVConvertor(result, "Report", true);
     });
 
@@ -316,6 +363,7 @@
     </div>
   </div>
   <p> 網址範例：</p>
+  <p> 請去除尾端'/'</p>
   <p>https://www.facebook.com/permalink.php?story_fbid=486071561565494&id=368692469970071</p>
   <p>https://www.facebook.com/slimclassroom.tw/posts/1000137253415788</p>
 </div>

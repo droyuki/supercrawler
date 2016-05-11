@@ -61,8 +61,18 @@
             console.log("Query address: " + addr);
             getLikes(addr + "/likes?limit=1000", id);
             getDetails(addr + "/comments?fields=parent,message,from,likes,message_tags,created_time&filter=stream", id)
-          } else {
+          } else if(address.indexOf("/posts/") > -1) {
             var name = address.split("www.facebook.com/")[1].split("/posts/")[0];
+            FB.api(name + "?fields=id", function (detail) {
+              var id = detail.id;
+              var addr = id + "_" + address.split("www.facebook.com/")[1].split("/posts/")[1];
+              console.log("Query address: " + addr);
+              getLikes(addr + "/likes?limit=1000", id);
+              getDetails(addr + "/comments?fields=parent,message,from,likes,message_tags,created_time&filter=stream", id)
+            });
+          } else if(address.indexOf("/videos/") > -1){
+            console.log("Type: video");
+            var name = address.split("www.facebook.com/")[1].split("/videos/")[0];
             FB.api(name + "?fields=id", function (detail) {
               var id = detail.id;
               var addr = id + "_" + address.split("www.facebook.com/")[1].split("/posts/")[1];

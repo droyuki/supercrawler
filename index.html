@@ -232,12 +232,12 @@
       // all done!
       console.log("Comlete!");
       console.log("Res count:" + result.length);
-      JSONToCSVConvertor(result,"Report",true);
+      JSONToCSVConvertor(result, "Report", true);
     });
 
     function makeCounter(limit, callback) {
       return function () {
-        if( --limit === 0 ) {
+        if (--limit === 0) {
           callback();
         }
       }
@@ -300,8 +300,7 @@
   </div>
   <div class="col-lg-6">
     <div class="input-group">
-      <input type="text" class="form-control" id="address" placeholder="Search for..."
-             value="https://www.facebook.com/slimclassroom.tw/posts/1000137253415788">
+      <input type="text" class="form-control" id="address" placeholder="Search for...">
       <span class="input-group-btn">
         <button class="btn btn-default" onclick="process()" type="button">Go!</button>
       </span>

@@ -48,8 +48,6 @@
     //1477960972449002_1553343964910702
     var myFacebookLogin = function (address) {
       // if login was successful, execute the following code
-      console.log("like status: " + likes_status);
-      console.log("detail status: " + detail_status);
       FB.login(function (response) {
         if (response.authResponse) {
           var setId = function (id) {
@@ -90,9 +88,6 @@
       function getLikes(next, id) {
         FB.api(next, function (response) {
           for (var i = 0; i < response.data.length; i++) {
-            //add all posts to the items array
-            //console.log("next");
-            //console.log(response.data[i]);
             parseLike(response.data[i], id);
             //likes.push(response.data[i]);
           }
@@ -101,10 +96,10 @@
             getLikes(response.paging.next, id);
           } else {
             //this is when it´s done
-            console.log("RESULT:" + result.length);
+//            console.log("RESULT:" + result.length);
             likes_status = true;
-            console.log(likes_status);
-            console.log(result);
+//            console.log(likes_status);
+//            console.log(result);
             done();
           }
         });
@@ -114,8 +109,8 @@
         FB.api(next, function (response) {
           for (var i = 0; i < response.data.length; i++) {
             //add all posts to the items array
-            console.log("next detail");
-            console.log(response.data[i]);
+//            console.log("next detail");
+//            console.log(response.data[i]);
             parseDetail(response.data[i], id);
           }
           if (response.paging && response.paging.next) {
@@ -123,9 +118,9 @@
             getDetails(response.paging.next, id);
           } else {
             //this is when it´s done
-            console.log("Detaul Result:" + result.length);
+//            console.log("Detaul Result:" + result.length);
             detail_status = true;
-            console.log(result);
+//            console.log(result);
             done();
           }
         });
@@ -215,6 +210,7 @@
 
 
     var process = function () {
+      $("#bar").css("width", "0%");
       var addr = document.getElementById("address").value;
       var id = setInterval(setTime, 500); // 啟動計時器
       myFacebookLogin(addr);

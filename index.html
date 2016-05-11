@@ -75,7 +75,7 @@
             var name = address.split("www.facebook.com/")[1].split("/videos/")[0];
             FB.api(name + "?fields=id", function (detail) {
               var id = detail.id;
-              var addr = id + "_" + address.split("www.facebook.com/")[1].split("/posts/")[1];
+              var addr = id + "_" + address.split("www.facebook.com/")[1].split("/videos/")[1];
               console.log("Query address: " + addr);
               getLikes(addr + "/likes?limit=1000", id);
               getDetails(addr + "/comments?fields=parent,message,from,likes,message_tags,created_time&filter=stream", id)
@@ -294,7 +294,7 @@
 <div class="container">
   <div class="page-header">
     <h1>Super crawler
-      <small><span class="label label-primary">Beta</span></small>
+      <small><span class="label label-primary">Beta v0.02</span></small>
     </h1>
   </div>
   <div class="col-lg-6">

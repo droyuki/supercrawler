@@ -55,7 +55,6 @@
           }
           /*判斷網址類型*/
           if (address.indexOf("permalink.php?") > -1) {
-            setInterval(setTime, 500); // 啟動計時器
             var id = address.split("&id=")[1];
             var stid = address.split("&id=")[0].split("fbid=")[1];
             var addr = id + "_" + stid;
@@ -64,7 +63,6 @@
             getShares(addr + "/sharedposts?limit=1000", id);
             getDetails(addr + "/comments?fields=parent,message,from,likes,message_tags,created_time&filter=stream", id)
           } else if (address.indexOf("/posts/") > -1) {
-            setInterval(setTime, 500); // 啟動計時器
             var name = address.split("www.facebook.com/")[1].split("/posts/")[0];
             FB.api(name + "?fields=id", function (detail) {
               var id = detail.id;
@@ -75,7 +73,6 @@
               getDetails(addr + "/comments?fields=parent,message,from,likes,message_tags,created_time&filter=stream", id)
             });
           } else if (address.indexOf("/videos/") > -1) {
-            setInterval(setTime, 500); // 啟動計時器
             console.log("Type: video");
             var name = address.split("www.facebook.com/")[1].split("/videos/")[0];
             FB.api(name + "?fields=id", function (detail) {
@@ -87,7 +84,6 @@
               getDetails(addr + "/comments?fields=parent,message,from,likes,message_tags,created_time&filter=stream", id)
             });
           } else if (address.indexOf("/photos/") > -1){
-            setInterval(setTime, 500); // 啟動計時器
             console.log("Type: photo");
             var name = address.split("www.facebook.com/")[1].split("/photos/")[0];
             FB.api(name + "?fields=id", function (detail) {
@@ -258,7 +254,7 @@
 
 
     var process = function () {
-      $("#bar").css("width", "0%");
+      setInterval(setTime, 500); // 啟動計時器
       var addr = document.getElementById("address").value;
       myFacebookLogin(addr);
       console.log(addr);
@@ -278,7 +274,7 @@
       }
       result.sort(compare);
       JSONToCSVConvertor(result, "Report", true);
-
+      $("#bar").css("width", "100%");
     });
 
     function makeCounter(limit, callback) {
